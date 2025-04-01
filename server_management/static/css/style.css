@@ -1,0 +1,16 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+}
+
+.table th {
+    border-top: none;
+}
+
+.btn-group .btn.active {
+    z-index: 0;
+}
