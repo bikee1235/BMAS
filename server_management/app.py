@@ -1,10 +1,12 @@
-from flask import Flask, render_template, redirect, url_for, flash, request, abort
+from flask import Flask, render_template, redirect, url_for, flash, request, abort, send_file
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db, login_manager
 from models.user import User
 from models.machine import Machine
 from config import Config
 from datetime import datetime
+from io import BytesIO, StringIO
+import csv
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -222,6 +224,59 @@ def delete_machine(machine_id):
     
     flash('Machine deleted successfully!', 'success')
     return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/export-machines')
+@login_required
+def export_machines():
+    if not current_user.is_admin:
+        abort(403)
+    
+    try:
+        # Create a string buffer for CSV data
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Write header
+        writer.writerow(['Hostname', 'Username', 'OS Type', 'Installed OS', 'Private IP', 
+                        'Public IP', 'CPU Details', 'RAM Details', 'VNC Port', 
+                        'Outside Accessible', 'Cloud Provider URL', 'Remarks'])
+        
+        # Write machine data
+        machines = Machine.query.all()
+        for machine in machines:
+            writer.writerow([
+                machine.hostname,
+                machine.username,
+                machine.os_type,
+                machine.installed_os,
+                machine.private_ip or '',
+                machine.public_ip or '',
+                machine.cpu_details,
+                machine.ram_details,
+                machine.vnc_port or '',
+                'Yes' if machine.outside_accessible else 'No',
+                machine.cloud_provider_url or '',
+                machine.remarks or ''
+            ])
+        
+        # Convert to bytes
+        output_str = output.getvalue()
+        output.close()
+        bytes_output = BytesIO()
+        bytes_output.write(output_str.encode('utf-8-sig'))
+        bytes_output.seek(0)
+        
+        return send_file(
+            bytes_output,
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name=f'machines_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        )
+        
+    except Exception as e:
+        print(f"Export error: {str(e)}")
+        flash('Error exporting data. Please try again.', 'danger')
+        return redirect(url_for('admin_dashboard'))
 
 if __name__ == '__main__':
     app.run(debug=True)
