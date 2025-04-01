@@ -26,12 +26,12 @@ with app.app_context():
     db.create_all()
     
     # Create default admin user if it doesn't exist
-    admin = User.query.filter_by(username='admin').first()
+    admin = User.query.filter_by(username='scoot').first()
     if not admin:
         admin = User(
-            username='admin',
+            username='scoot',
             email='admin@example.com',
-            password='admin123',
+            password='tiger',
             is_admin=True
         )
         db.session.add(admin)
