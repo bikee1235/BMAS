@@ -255,3 +255,23 @@ body.modal-open {
     overflow: hidden;
     padding-right: 0 !important;
 }
+
+/* Full-screen layout styles */
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+
+main {
+    min-height: calc(100vh - 136px); /* Adjust for navbar and footer */
+}
+
+.container-fluid {
+    max-width: 1920px; /* For ultra-wide screens */
+    margin: 0 auto;
+}
+
+.table-responsive {
+    max-height: calc(100vh - 300px); /* Adjust for other elements */
+    overflow-y: auto;
+}
