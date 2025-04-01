@@ -6,11 +6,17 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Machine Management System</h2>
     {% if current_user.is_admin %}
-    <div>
-        <a href="{{ url_for('export_machines') }}" class="btn btn-success me-2">
+    <div class="d-flex align-items-center">
+        <form method="POST" action="{{ url_for('import_machines') }}" enctype="multipart/form-data" class="me-2 d-flex align-items-center">
+            <input type="file" name="file" accept=".csv" class="form-control form-control-sm me-2" required>
+            <button type="submit" class="btn btn-info btn-sm me-2">
+                <i class="fas fa-file-import"></i> Import CSV
+            </button>
+        </form>
+        <a href="{{ url_for('export_machines') }}" class="btn btn-success btn-sm me-2">
             <i class="fas fa-file-export"></i> Export CSV
         </a>
-        <a href="{{ url_for('add_machine') }}" class="btn btn-primary">
+        <a href="{{ url_for('add_machine') }}" class="btn btn-primary btn-sm">
             <i class="fas fa-plus"></i> Add Machine
         </a>
     </div>
@@ -43,6 +49,7 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
+                        <th>SN</th>
                         <th>HOSTNAME</th>
                         <th>OS / TYPE</th>
                         <th>IP ADDRESS</th>
@@ -58,6 +65,7 @@
                 <tbody>
                     {% for machine in machines %}
                     <tr>
+                        <td>{{ (pagination.page - 1) * pagination.per_page + loop.index }}</td>
                         <td>
                             <strong>{{ machine.hostname }}</strong><br>
                             <small class="text-muted">{{ machine.username }}</small>
@@ -82,6 +90,9 @@
                             {% if machine.vnc_port %}
                             <span>VNC: {{ machine.vnc_port }}</span><br>
                             {% endif %}
+                            {% if machine.ssh_port %}
+                            <span>SSH: {{ machine.ssh_port }}</span><br>
+                            {% endif %}
                             <span class="badge {% if machine.outside_accessible %}bg-success{% elif machine.outside_accessible == false %}bg-danger{% else %}bg-warning{% endif %}">
                                 {{ 'Yes' if machine.outside_accessible else 'No' }}
                             </span>
@@ -102,30 +113,9 @@
                             <a href="{{ url_for('edit_machine', machine_id=machine.id) }}" class="btn btn-sm btn-outline-primary">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ machine.id }}">
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="showDeleteModal('{{ machine.id }}', '{{ machine.hostname }}')">
                                 <i class="fas fa-trash"></i>
                             </button>
-                            
-                            <!-- Delete Modal -->
-                            <div class="modal fade" id="deleteModal{{ machine.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ machine.id }}" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="deleteModalLabel{{ machine.id }}">Confirm Delete</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            Are you sure you want to delete the machine <strong>{{ machine.hostname }}</strong>?
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                            <form action="{{ url_for('delete_machine', machine_id=machine.id) }}" method="POST">
-                                                <button type="submit" class="btn btn-danger">Delete</button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </td>
                         {% endif %}
                     </tr>
@@ -133,32 +123,76 @@
                 </tbody>
             </table>
         </div>
-        
-        {% if pagination.pages > 1 %}
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center">
-                <li class="page-item {{ 'disabled' if pagination.page == 1 }}">
-                    <a class="page-link" href="{{ url_for(current_user.is_admin and 'admin_dashboard' or 'user_dashboard', page=pagination.prev_num, os=request.args.get('os'), search=request.args.get('search')) }}">Previous</a>
-                </li>
-                
-                {% for page_num in pagination.iter_pages() %}
-                    {% if page_num %}
-                        <li class="page-item {{ 'active' if pagination.page == page_num }}">
-                            <a class="page-link" href="{{ url_for(current_user.is_admin and 'admin_dashboard' or 'user_dashboard', page=page_num, os=request.args.get('os'), search=request.args.get('search')) }}">{{ page_num }}</a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link">...</span>
-                        </li>
-                    {% endif %}
-                {% endfor %}
-                
-                <li class="page-item {{ 'disabled' if pagination.page == pagination.pages }}">
-                    <a class="page-link" href="{{ url_for(current_user.is_admin and 'admin_dashboard' or 'user_dashboard', page=pagination.next_num, os=request.args.get('os'), search=request.args.get('search')) }}">Next</a>
-                </li>
-            </ul>
-        </nav>
-        {% endif %}
+
+        <!-- Add results counter and pagination wrapper -->
+        <div class="d-flex flex-column align-items-center mt-4">
+            <div class="text-muted mb-2">
+                {% set end_item = pagination.page * pagination.per_page %}
+                {% if end_item > pagination.total %}
+                    {% set end_item = pagination.total %}
+                {% endif %}
+                Showing {{ (pagination.page - 1) * pagination.per_page + 1 }} 
+                to {{ end_item }}
+                of {{ pagination.total }} machines
+            </div>
+
+            {% if pagination.pages > 1 %}
+            <nav aria-label="Machine navigation">
+                <ul class="pagination">
+                    <li class="page-item {{ 'disabled' if pagination.page == 1 }}">
+                        <a class="page-link" href="{{ url_for(current_user.is_admin and 'admin_dashboard' or 'user_dashboard', page=pagination.prev_num, os=request.args.get('os'), search=request.args.get('search')) }}">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </a>
+                    </li>
+                    
+                    {% for page_num in pagination.iter_pages(left_edge=2, left_current=2, right_current=2, right_edge=2) %}
+                        {% if page_num %}
+                            <li class="page-item {{ 'active' if pagination.page == page_num }}">
+                                <a class="page-link" href="{{ url_for(current_user.is_admin and 'admin_dashboard' or 'user_dashboard', page=page_num, os=request.args.get('os'), search=request.args.get('search')) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <li class="page-item {{ 'disabled' if pagination.page == pagination.pages }}">
+                        <a class="page-link" href="{{ url_for(current_user.is_admin and 'admin_dashboard' or 'user_dashboard', page=pagination.next_num, os=request.args.get('os'), search=request.args.get('search')) }}">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+
+        <!-- Single Delete Modal -->
+        <div class="modal" id="deleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                            Confirm Delete
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-0">Are you sure you want to delete machine <strong id="machineToDelete"></strong>?</p>
+                        <p class="text-muted small mb-0 mt-2">This action cannot be undone.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <form id="deleteForm" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-1"></i> Delete Machine
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
