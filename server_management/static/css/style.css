@@ -107,6 +107,37 @@ body {
     color: white;
 }
 
+/* Enhanced pagination styles */
+.pagination {
+    margin-bottom: 0;
+}
+
+.pagination .page-link {
+    padding: 0.5rem 1rem;
+    color: var(--primary-color);
+    border: 1px solid #e2e8f0;
+    margin: 0 2px;
+}
+
+.pagination .page-link:hover {
+    background-color: var(--background-color);
+    color: var(--primary-hover);
+    border-color: var(--primary-color);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: var(--text-secondary);
+    pointer-events: none;
+    background-color: #f8f9fa;
+    border-color: #e2e8f0;
+}
+
 /* Smooth transitions */
 .fade {
     transition: opacity 0.15s linear;
@@ -156,4 +187,71 @@ body {
 /* Add animation class */
 .table tbody tr.animate {
     animation: fadeIn 0.5s ease forwards;
+}
+
+/* Import form styles */
+.import-form {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+input[type="file"] {
+    max-width: 300px;
+    font-size: 0.875rem;
+}
+
+/* Adjust button sizes */
+.btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.875rem;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+}
+
+.modal.show {
+    display: block;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-backdrop {
+    display: none !important;
+}
+
+.modal-dialog {
+    z-index: 1056;
+    pointer-events: auto;
+    margin: 1.75rem auto;
+}
+
+.modal-content {
+    position: relative;
+    pointer-events: auto;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1.25rem 1.5rem;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid #e5e7eb;
+    padding: 1.25rem 1.5rem;
+}
+
+.modal-backdrop.show {
+    opacity: 0.5;
+}
+
+body.modal-open {
+    overflow: hidden;
+    padding-right: 0 !important;
 }

@@ -15,6 +15,7 @@ class Machine(db.Model):
     public_ip = db.Column(db.String(15), nullable=True)
     cloud_provider_url = db.Column(db.String(128), nullable=True)
     vnc_port = db.Column(db.Integer, nullable=True)
+    ssh_port = db.Column(db.Integer, nullable=True)  # Add this line
     outside_accessible = db.Column(db.Boolean, default=False)
     remarks = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -22,7 +23,7 @@ class Machine(db.Model):
     
     def __init__(self, hostname, username, os_type, installed_os, cpu_details, ram_details, 
                  private_ip=None, public_ip=None, cloud_provider_url=None, vnc_port=None, 
-                 outside_accessible=False, remarks=None):
+                 ssh_port=None, outside_accessible=False, remarks=None):  # Add ssh_port parameter
         self.hostname = hostname
         self.username = username
         self.os_type = os_type
@@ -33,6 +34,7 @@ class Machine(db.Model):
         self.public_ip = public_ip
         self.cloud_provider_url = cloud_provider_url
         self.vnc_port = vnc_port
+        self.ssh_port = ssh_port  # Add this line
         self.outside_accessible = outside_accessible
         self.remarks = remarks
     
@@ -57,6 +59,7 @@ class Machine(db.Model):
             'public_ip': self.public_ip,
             'cloud_provider_url': self.cloud_provider_url,
             'vnc_port': self.vnc_port,
+            'ssh_port': self.ssh_port,  # Add this line
             'outside_accessible': self.outside_accessible,
             'remarks': self.remarks
         }

@@ -60,6 +60,10 @@
                     <input type="number" class="form-control" id="vnc_port" name="vnc_port" value="{{ machine.vnc_port }}">
                 </div>
                 <div class="col-md-3 mb-3">
+                    <label for="ssh_port" class="form-label">SSH Port</label>
+                    <input type="number" class="form-control" id="ssh_port" name="ssh_port" value="{{ machine.ssh_port }}">
+                </div>
+                <div class="col-md-3 mb-3">
                     <label for="outside_accessible" class="form-label">Outside Accessible</label>
                     <select class="form-select" id="outside_accessible" name="outside_accessible">
                         <option value="No" {{ 'selected' if not machine.outside_accessible }}>No</option>
