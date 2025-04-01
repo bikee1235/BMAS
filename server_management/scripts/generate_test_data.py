@@ -30,6 +30,20 @@ def generate_test_machines():
         'digitalocean.com',
         'linode.com'
     ]
+    
+    locations = [
+        'Server Room A - Rack 1 (Ground Floor)',
+        'Server Room A - Rack 2 (Ground Floor)',
+        'Server Room B - Rack 1 (First Floor)',
+        'Server Room B - Rack 2 (First Floor)',
+        'Data Center 1 - Pod 3 (Mumbai)',
+        'Data Center 2 - Pod 1 (Singapore)',
+        'Cloud Instance - AWS (us-east-1)',
+        'Cloud Instance - Azure (West Europe)',
+        'Edge Location - Branch Office (New York)',
+        'Edge Location - Branch Office (London)',
+        None  # For unknown locations
+    ]
 
     with app.app_context():
         for i in range(100):
@@ -53,6 +67,12 @@ def generate_test_machines():
             provider = random.choice(cloud_providers)
             cloud_url = f"https://{provider}/instance/{fake.uuid4()}"
             
+            # Decide location based on whether it's a cloud instance
+            if 'cloud' in provider.lower():
+                physical_location = next(loc for loc in locations if 'Cloud Instance' in str(loc))
+            else:
+                physical_location = random.choice([loc for loc in locations if loc and 'Cloud Instance' not in loc])
+            
             vnc_port = random.randint(5900, 5999) if random.random() > 0.3 else None
             ssh_port = random.randint(22000, 22999) if random.random() > 0.3 else None
             outside_accessible = random.choice([True, False])
@@ -69,6 +89,7 @@ def generate_test_machines():
                 private_ip=private_ip,
                 public_ip=public_ip,
                 cloud_provider_url=cloud_url,
+                physical_location=physical_location,
                 vnc_port=vnc_port,
                 ssh_port=ssh_port,
                 outside_accessible=outside_accessible,

@@ -1,6 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, flash, request, abort, send_file
 from flask_login import login_user, logout_user, login_required, current_user
-from models import db, login_manager
+from models import db, login_manager, migrate
 from models.user import User
 from models.machine import Machine
 from config import Config
@@ -19,6 +19,7 @@ app.jinja_env.globals.update(min=min)
 # Initialize extensions
 db.init_app(app)
 login_manager.init_app(app)
+migrate.init_app(app, db)
 
 # Create database tables and initialize database
 with app.app_context():
@@ -111,6 +112,7 @@ def admin_dashboard():
                 db.func.coalesce(Machine.cpu_details, '').ilike(search_term),
                 db.func.coalesce(Machine.ram_details, '').ilike(search_term),
                 db.func.coalesce(Machine.cloud_provider_url, '').ilike(search_term),
+                db.func.coalesce(Machine.physical_location, '').ilike(search_term),  # Add this line
                 db.func.coalesce(Machine.remarks, '').ilike(search_term),
                 db.cast(Machine.vnc_port, db.String).ilike(search_term),
                 db.cast(Machine.ssh_port, db.String).ilike(search_term)
@@ -150,6 +152,7 @@ def user_dashboard():
                 db.func.coalesce(Machine.cpu_details, '').ilike(search_term),
                 db.func.coalesce(Machine.ram_details, '').ilike(search_term),
                 db.func.coalesce(Machine.cloud_provider_url, '').ilike(search_term),
+                db.func.coalesce(Machine.physical_location, '').ilike(search_term),  # Add this line
                 db.func.coalesce(Machine.remarks, '').ilike(search_term),
                 db.cast(Machine.vnc_port, db.String).ilike(search_term),
                 db.cast(Machine.ssh_port, db.String).ilike(search_term)
@@ -181,8 +184,9 @@ def add_machine():
             private_ip=request.form['private_ip'],
             public_ip=request.form['public_ip'],
             cloud_provider_url=request.form['cloud_provider_url'],
+            physical_location=request.form['physical_location'],  # Add this line
             vnc_port=request.form['vnc_port'] or None,
-            ssh_port=request.form['ssh_port'] or None,  # Add this line
+            ssh_port=request.form['ssh_port'] or None,
             outside_accessible=request.form['outside_accessible'] == 'Yes',
             remarks=request.form['remarks']
         )
@@ -240,6 +244,7 @@ def edit_machine(machine_id):
                 machine.private_ip = private_ip
                 machine.public_ip = public_ip
                 machine.cloud_provider_url = request.form['cloud_provider_url']
+                machine.physical_location = request.form['physical_location']  # Add this line
                 machine.vnc_port = int(vnc_port) if vnc_port else None
                 machine.ssh_port = int(ssh_port) if ssh_port else None
                 machine.outside_accessible = request.form['outside_accessible'] == 'Yes'

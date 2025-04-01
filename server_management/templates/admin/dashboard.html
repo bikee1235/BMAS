@@ -53,6 +53,7 @@
                         <th>HOSTNAME</th>
                         <th>OS / TYPE</th>
                         <th>IP ADDRESS</th>
+                        <th>LOCATION</th>
                         <th>RESOURCES</th>
                         <th>ACCESS</th>
                         <th>CLOUD PROVIDER</th>
@@ -80,6 +81,15 @@
                             {% endif %}
                             {% if machine.public_ip %}
                             <small class="text-muted">{{ machine.public_ip }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if machine.physical_location %}
+                            <span class="text-secondary">
+                                <i class="fas fa-map-marker-alt"></i> {{ machine.physical_location }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">Not specified</span>
                             {% endif %}
                         </td>
                         <td>
