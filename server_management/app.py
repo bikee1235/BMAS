@@ -307,10 +307,10 @@ def export_machines():
         output = StringIO()
         writer = csv.writer(output)
         
-        # Update header to include SSH port
+        # Update header with physical_location
         writer.writerow(['Hostname', 'Username', 'OS Type', 'Installed OS', 'Private IP', 
                         'Public IP', 'CPU Details', 'RAM Details', 'VNC Port', 'SSH Port',
-                        'Outside Accessible', 'Cloud Provider URL', 'Remarks'])
+                        'Outside Accessible', 'Cloud Provider URL', 'Physical Location', 'Remarks'])
         
         machines = Machine.query.all()
         for machine in machines:
@@ -324,9 +324,10 @@ def export_machines():
                 machine.cpu_details,
                 machine.ram_details,
                 machine.vnc_port or '',
-                machine.ssh_port or '',  # Add SSH port to export
+                machine.ssh_port or '',
                 'Yes' if machine.outside_accessible else 'No',
                 machine.cloud_provider_url or '',
+                machine.physical_location or '',  # Add physical location to export
                 machine.remarks or ''
             ])
         
@@ -392,6 +393,7 @@ def import_machines():
                     private_ip=cleaned_row.get('Private IP'),
                     public_ip=cleaned_row.get('Public IP'),
                     cloud_provider_url=cleaned_row.get('Cloud Provider URL'),
+                    physical_location=cleaned_row.get('Physical Location'),  # Add this line
                     vnc_port=int(cleaned_row['VNC Port']) if cleaned_row.get('VNC Port') else None,
                     ssh_port=int(cleaned_row['SSH Port']) if cleaned_row.get('SSH Port') else None,
                     outside_accessible=cleaned_row.get('Outside Accessible', 'No') == 'Yes',
