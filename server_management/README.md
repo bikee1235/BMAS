@@ -1,4 +1,4 @@
-# Machine Management System (BMAS)
+# Pcloudy Machines Details (BMAS)
 
 A Flask-based web application for managing and tracking machines, servers, and virtual instances across different environments.
 
